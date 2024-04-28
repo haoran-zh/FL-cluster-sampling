@@ -40,18 +40,11 @@ def get_sampling_clusters(chosen_clients, clients_task, all_data_num, gradient_r
 
 
 
-def get_optimal_sampling(chosen_clients, clients_task, all_data_num, gradient_record, args): # gradient record is gradient norm
-    # gradient_record: the shape is [task_index][client_index]
-    # chosen_clients provide the index of the chosen clients in a random order
-    # clients_task has the same order as chosen_clients
-    # multiple tasks sampling will degenerate to single task sampling when task=1
-    # therefore we can use the same function.
-    if type(clients_task) == list:
-        clients_task = np.array(clients_task)
-    sample_num = len(chosen_clients)  # m in the paper
-    tasks_num = len(gradient_record)
+def get_optimal_sampling(m, clients): # gradient record is gradient norm
+    sample_num = m  # m in the paper
+    tasks_num = 1
     # random.shuffle(task_indices) # make task order random
-    all_clients_num = len(gradient_record[0])
+    all_clients_num = len(clients)
 
     all_gradients = gradient_record.copy()
 
