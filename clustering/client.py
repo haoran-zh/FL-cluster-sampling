@@ -23,7 +23,6 @@ class Client:
             local_data_num.append(len(tasks_data_idx[self.tasks_index][0][client_idx]))
         self.data_fraction = len(self.loader.dataset) / sum(local_data_num)
         
-        
     def set_data(self):
         if type_iid[self.tasks_index] == 'iid':
             client_data = Subset(self.tasks_data_info[self.tasks_index][0], 
