@@ -57,26 +57,11 @@ class Cluster:
         #for c in self.clients:
         #    c.get_trained_weights()
         # try to use gradient similarity
-        if method == "cosine":
-            gradient_similarity = np.ones((len(self.clients), len(self.clients)))
-            for i in range(len(self.clients)):
-                for j in range(i+1, len(self.clients)):
-                    gradient_i = self.clients[i].gradients
-                    gradient_j = self.clients[j].gradients
-                    gradient_similarity[i, j] = cosine_similarity(gradient_i, gradient_j)
-                    gradient_similarity[j, i] = gradient_similarity[i, j]
-            print(gradient_similarity)
-            clustering = SpectralClustering(n_clusters=self.num_clusters,
-                                    affinity='precomputed',
-                                    assign_labels='kmeans',
-                                    random_state=0).fit(gradient_similarity)
-            self.cluster_labels = clustering.labels_
-        else:
-            self.create_latent_space(data_type=data_type, dim_method=dim_method)
-            assert self.latent_space is not None, "Failed creating latent space."
-            self.cluster_latent_space(cluster_method=cluster_method)
-            assert self.cluster_labels is not None, "Failed clustering latent space."
-            # self.plot()
+        self.create_latent_space(data_type=data_type, dim_method=dim_method)
+        assert self.latent_space is not None, "Failed creating latent space."
+        self.cluster_latent_space(cluster_method=cluster_method)
+        assert self.cluster_labels is not None, "Failed clustering latent space."
+        # self.plot()
         
     def plot(self):
         plt.figure(figsize=(10, 10))

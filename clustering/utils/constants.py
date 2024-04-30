@@ -3,7 +3,7 @@ random_seed = 18786
 
 type_iid=["noniid"]
 task_type = ["mnist"]
-num_clients = 20
+num_clients = 50
 class_ratio=[0.21]
 active_rate = 0.2
 

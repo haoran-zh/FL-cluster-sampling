@@ -5,7 +5,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-def get_experiment_data():
+def get_experiment_data(class_set_list):
     tasks_data_info = []
     tasks_data_idx = []
     for i in range(len(task_type)):
@@ -16,10 +16,10 @@ def get_experiment_data():
                                             max_data_num=tasks_data_info[i][3],
                                             num_users=num_clients)) # 0: clients_data_idx
         elif type_iid[i] =='noniid':
-            tasks_data_idx.append(dataset.noniid(dataset=tasks_data_info[i][0],
+            tasks_data_idx.append(dataset.detailed_noniid(dataset=tasks_data_info[i][0],
                                 min_data_num=tasks_data_info[i][2],
                                 max_data_num=tasks_data_info[i][3],
-                                class_ratio=class_ratio[i],
+                                class_set=class_set_list,
                                 num_users=num_clients))
         return tasks_data_info, tasks_data_idx
     

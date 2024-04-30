@@ -72,24 +72,31 @@ class Server:
         # print('global loss: ', loss.item())
         return loss.item()
     
-    def FL_training(self, num_clients=20, rounds=10, sampling_method='random'):
+    def FL_training(self, num_clients=20, rounds=10, sampling_method='random', experiment_num=1):
         # define clients
         clients = [Client(self.tasks_data_info, self.tasks_data_idx, i) for i in range(num_clients)]
+        experiment_loss_lists = []
+        for exp in range(experiment_num):
+            for r in tqdm(range(rounds)):
+                self.current_round = r
+                # set local models weights to current global
+                for c in clients:
+                    c.update_to_global_weights(self.global_model)
+                # sampling with current global model
+                self.sampling(clients, method=sampling_method)
+                # train clients
+                for c in self.active_clients:
+                    c.training(epochs=5)
+                # aggregate weights
+                self.aggregation()
+                self.loss_list.append(self.get_global_loss())
+            loss_list = self.loss_list.copy()
+            experiment_loss_lists.append(loss_list)
+            self.loss_list = []
+        # average loss over experiments
+        avg_loss_list = np.mean(np.array(experiment_loss_lists), axis=0)
+        self.loss_list = avg_loss_list.tolist()
 
-        for r in tqdm(range(rounds)):
-            self.current_round = r
-            # set local models weights to current global
-            for c in clients:
-                c.update_to_global_weights(self.global_model)
-            # sampling with current global model
-            self.sampling(clients, method=sampling_method)
-            # train clients
-            
-            for c in self.active_clients:
-                c.training(epochs=5)
-            # aggregate weights
-            self.aggregation()
-            self.loss_list.append(self.get_global_loss())
     
     def plot_loss(self):
         plt.plot(self.loss_list)
