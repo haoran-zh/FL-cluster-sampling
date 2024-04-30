@@ -73,7 +73,6 @@ class Cluster:
     def plot(self):
         plt.figure(figsize=(10, 10))
         print("Silhouette score:", silhouette_score(self.latent_space, self.cluster_labels))
-        print(self.latent_space)
         
         for i in range(self.num_clusters):
             plt.scatter(self.latent_space[self.cluster_labels == i, 0], 
