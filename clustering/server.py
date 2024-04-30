@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 class Server:
-    def __init__(self, tasks_data_info, tasks_data_idx, batch_size=128, tasks_index=0):
+    def __init__(self, tasks_data_info, tasks_data_idx, batch_size=128, tasks_index=0, cluster_requirements=None):
         #global tasks_data_info, tasks_data_idx
         self.tasks_data_info = tasks_data_info
         self.tasks_data_idx = tasks_data_idx
@@ -16,6 +16,7 @@ class Server:
         self.tasks_index = tasks_index # 0 is non-iid
         self.test_data = self.tasks_data_info[self.tasks_index][1] # set test dataset
         self.loss_list = []
+        self.cluster_requirements = cluster_requirements
         
         self.global_model = MnistMLP()
         self.device = torch.device("cpu")
@@ -49,9 +50,10 @@ class Server:
         elif method == 'IS':
             self.active_clients = loss_sampling(m=active_num, clients=clients)
         elif method == 'cluster':
+            assert self.cluster_requirements is not None, "Cluster requirements not set."
             clusters = Cluster(clients)
-            clusters.cluster()
-            if (self.current_round+1) % 50 == 0:
+            clusters.cluster(*self.cluster_requirements)
+            if (self.current_round+1) % 10 == 0:
                 clusters.plot()
             cluster_result = clusters.get_result()
             self.active_clients = cluster_sampling(active_num, clients, cluster_result)
