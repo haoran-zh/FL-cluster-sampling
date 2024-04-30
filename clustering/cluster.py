@@ -22,6 +22,8 @@ class Cluster:
             self.data = np.array([c.flattened_weights for c in self.clients])
         elif data_type == "gradients":
             self.data = np.array([c.flattened_gradients for c in self.clients])
+        elif data_type == "true_labels":
+            self.data = np.array([c.non_iid_labels for c in self.clients])
         elif data_type == "custom":
             assert data is not None, "Data must be provided for custom data type!"
             self.data = data
@@ -29,9 +31,11 @@ class Cluster:
             raise ValueError(f"Data type {data_type} not supported!")
         # pick dimension reduction method
         if dim_method == "pca":
+            print('PCA')
             pca = PCA(n_components=2)
             self.latent_space = pca.fit_transform(self.data) 
         elif dim_method == "tsne":
+            print('tsne')
             tsne = TSNE(n_components=2, learning_rate='auto',
                           init='random', perplexity=3)
             self.latent_space = tsne.fit_transform(self.data)
@@ -39,6 +43,9 @@ class Cluster:
             autoencoder = AutoEncoderLatentSpace(self.data, latent_dim=2)
             autoencoder.train()
             self.latent_space = autoencoder.get_latent_space()
+        elif dim_method == "theory":
+            assert data_type == "true_labels", "Theory method only supports true labels data type!"
+            self.latent_space = self.data
         else:
             raise ValueError(f"Method {dim_method} not supported!")
         
@@ -66,6 +73,8 @@ class Cluster:
     def plot(self):
         plt.figure(figsize=(10, 10))
         print("Silhouette score:", silhouette_score(self.latent_space, self.cluster_labels))
+        print(self.latent_space)
+        
         for i in range(self.num_clusters):
             plt.scatter(self.latent_space[self.cluster_labels == i, 0], 
                         self.latent_space[self.cluster_labels == i, 1], 

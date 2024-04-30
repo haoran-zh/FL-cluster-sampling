@@ -52,6 +52,7 @@ class Server:
         elif method == 'cluster':
             assert self.cluster_requirements is not None, "Cluster requirements not set."
             clusters = Cluster(clients)
+            # print(self.cluster_requirements)
             clusters.cluster(*self.cluster_requirements)
             if (self.current_round+1) % 10 == 0:
                 clusters.plot()

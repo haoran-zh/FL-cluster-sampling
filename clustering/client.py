@@ -41,9 +41,7 @@ class Client:
         previous_local_state_dict = self.model.state_dict().copy()
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0005)
-
         client_label = self.tasks_data_idx[self.tasks_index][1][self.client_index]
-
 
         for _ in range(epochs):
             self.model.train()
