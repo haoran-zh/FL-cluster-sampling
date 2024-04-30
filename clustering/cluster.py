@@ -36,7 +36,9 @@ class Cluster:
                           init='random', perplexity=3)
             self.latent_space = tsne.fit_transform(self.data)
         elif dim_method == "autoencoder":
-            pass
+            autoencoder = AutoEncoderLatentSpace(self.data, latent_dim=2)
+            autoencoder.train()
+            self.latent_space = autoencoder.get_latent_space()
         else:
             raise ValueError(f"Method {dim_method} not supported!")
         
@@ -106,3 +108,57 @@ class Cluster:
             cluster_clients_list[cluster].append(c)
         self.result = cluster_clients_list
         return self.result
+    
+class AutoEncoder(nn.Module):
+    def __init__(self, input_dim, latent_dim=2):
+        super().__init__()
+        self.input_dim = input_dim
+        self.latent_dim = latent_dim
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, latent_dim),
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, 64),
+            nn.ReLU(),
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, input_dim),
+            nn.Tanh()
+        )
+    
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+# train autoencoder and get the latent space representation for each client
+class AutoEncoderLatentSpace:
+    def __init__(self, data, latent_dim=2):
+        self.data = data
+        self.input_dim = data[0].shape[0]
+        self.latent_dim = latent_dim
+        self.autoencoder = AutoEncoder(self.input_dim, latent_dim)
+        self.train()
+    
+    def train(self, epochs=25):
+        criterion = nn.MSELoss()
+        optimizer = torch.optim.Adam(self.autoencoder.parameters(), lr=0.001)
+        for _ in range(epochs):
+            for d in self.data:
+                d = torch.tensor(d, dtype=torch.float32)
+                optimizer.zero_grad()
+                output = self.autoencoder(d)
+                loss = criterion(output, d)
+                loss.backward()
+                optimizer.step()
+                
+    def get_latent_space(self):
+        latent_space = []
+        for d in self.data:
+            d = torch.tensor(d, dtype=torch.float32)
+            latent_space.append(self.autoencoder.encoder(d).detach().numpy())
+        return np.array(latent_space)
